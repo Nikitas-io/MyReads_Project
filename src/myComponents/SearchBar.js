@@ -8,16 +8,21 @@ class SearchBar extends Component{
     state = {
         query: '',
         showingBooks: [],
+        categoryBooks: [],
         message: '',
         messageFlag: false
     };
   
     /**
-     * Load the books from the user's categories.
-     * It is specifically asked that search results are not shown when all of the text is deleted out of the search input box.
+     * Get the books that already exist in the user's categories.
+     */
     componentDidMount() {
-        this.categoryBooks();
-    } */
+        fetchBooks.getAll()
+        .then((allBooks) => {
+            this.setState({ categoryBooks: allBooks });
+        })
+        .catch((error) => `Something went terribly wrong! Here's your error: ${error}`);
+    } 
 
     /**
      * Update the query and set the showingBooks state according to that query.
@@ -35,7 +40,7 @@ class SearchBar extends Component{
         }
         //If the query is empty, fetch all books that are in the categories again.
         else{
-            this.categoryBooks();
+            this.setState({showingBooks: []});
         }
         this.setState( {query: query.trim()});
     }
@@ -63,28 +68,28 @@ class SearchBar extends Component{
 
             //Raise flag to show message.
             this.setState({messageFlag: true});
-
+            
             //Clear message after 4 seconds.
             setTimeout(()=>{
                 this.setState({messageFlag: false});
             }, 4000);
+
+            //Re-render the books to also update the category in the page.
+            fetchBooks.search(this.state.query)
+            .then((books) => { 
+                if(books){
+                    this.setState({showingBooks: books});
+                }
+            })
+            .catch((error) => `Something went terribly wrong! Here's your error: ${error}`);
+            
         })
         .catch((error) => `Something went terribly wrong! Here's your error: ${error}`);
     }
     
-    /**
-     * Get the books that already exist in the user's categories.
-     */
-    categoryBooks = () => {
-        fetchBooks.getAll()
-        .then((allBooks) => {
-            this.setState({ showingBooks: allBooks });
-        })
-        .catch((error) => `Something went terribly wrong! Here's your error: ${error}`);
-    }
 
     render(){
-        const {showingBooks, message, messageFlag}=this.state;
+        const {showingBooks, message, messageFlag, categoryBooks}=this.state;
 
         return( 
             <div className="search-books">
@@ -116,14 +121,25 @@ class SearchBar extends Component{
                             <h1>No books found with that title
                                 <span role="img" aria-label="jsx-a11y/accessible-emoji"> 💩</span>
                             </h1>
-                        ): 
-                            showingBooks.map((book) =>
-                                <Book
+                        ): (
+                            showingBooks.map((book) =>{
+                                /*Compare the books returned from the search query with the
+                                categorized books and mark their shelves before rendering. */
+                                categoryBooks.forEach(categorizedBook => {
+                                    if(categorizedBook.id === book.id) {
+                                        // console.log(`matched`);
+                                        book.shelf = categorizedBook.shelf;
+                                    }
+                                })
+
+                                return( <Book
                                     key={book.id}
                                     book={book}
                                     updateCategory={this.updateCategory.bind(this)}
                                 />)
-                        }    
+                            })
+                        )}
+                            
                     </ol>
                 </div>
             </div>
