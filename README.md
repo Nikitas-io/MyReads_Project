@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-This is my version of the **MyReads Project** project. I made use of React to create the bookshelf app that allows you to select and categorize books you have read, are currently reading, or want to read.
+In this project, I made use of React to create the bookshelf app that allows you to select and categorize books you have read, are currently reading, or want to read. The purpose of the project is to demonstrate the understanding of the basic structure and operation of a React-based app.
 
 ## Run the app
 
